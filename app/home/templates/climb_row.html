@@ -1,0 +1,27 @@
+<tr id="route_table_row_{{route.uid}}">
+  <td>
+    {{route.uid}}
+  </td>
+  <td>
+    {{route.name}}
+  </td>
+  <td>
+    {{route.grade(current_user.data['default_grade_system'])}}
+  </td>
+  <td>
+    {{route.tags_str}}
+  </td>
+  <td class="text-primary">
+    {{route.format_date()}}
+  </td>
+  <td class="td" id="edit_route_{{route.uid}}">
+    <a type="button" class="btn btn-primary">
+      <i class="material-icons" >edit</i>
+    </a>
+  </td>
+  <td class="td" id="delete_route_{{route.uid}}">
+    <a type="button" class="btn btn-danger" >
+      <i class="material-icons">close</i>
+    </a>
+  </td>
+</tr>

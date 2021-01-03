@@ -1,0 +1,230 @@
+{% extends "base-site.html" %}
+
+{% block title %} Manage Routes {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+    div.tooltip-donut {
+     position: absolute;
+     text-align: center;
+     padding: .5rem;
+     background: #FFFFFF;
+     color: #313639;
+     border: 1px solid #313639;
+     border-radius: 8px;
+     pointer-events: none;
+     font-size: 1.3rem;
+}
+
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+    {% if current_user.floorplan is not none %}
+    <div class="row">
+        <div class="col-md-12">
+            <div id="floorplan"></div>
+        </div>
+    </div>
+    {% else %}
+        <a > floor plan has not yet been uploaded </a>
+        <div class="col-md-3">
+            <a class="btn btn-default btn-block" href = {{url_for('home_blueprint.centre_profile') }}>
+                Go to Centre Profile
+            </a>
+        </div>
+    {% endif %}
+        <div class="row">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header card-header-primary">
+                  <div class="row">
+                    <div class="col-md-6">
+                        <h4 class="card-title ">Routes</h4>
+                        <p class="card-category"> All Routes</p>
+                     </div>
+                    <div class="col-md-auto">
+                        <a class="btn btn-default btn-block" href = {{url_for('home_blueprint.create_route') }}>
+                          Create Route
+                        </a>
+                     </div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table  id="routesTable"  style="width:100%" class="display" >
+              <thead class=" text-primary">
+                <th>
+                  Route ID
+                </th>
+                <th>
+                  Name
+                </th>
+                <th>
+                  Grade
+                </th>
+                <th>
+                  Tags
+                </th>
+                <th>
+                  Date Added
+                </th>
+                <th>
+                  Edit Climb
+                </th>
+                <th>
+                  Delete Climb
+                </th>
+              </thead>
+              <tbody>
+              {% for route in routes %}
+                {% include 'climb_row.html' %}
+              {% endfor %}
+              </tbody>
+            </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+        </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<!-- Specific Page JS goes HERE  -->
+    <script>
+        $(function(){
+
+            var table = $('#routesTable').DataTable();
+
+            class Circle {
+                constructor(floorplan_x, floorplan_y) {
+                this.floorplan_x = height;
+                this.floorplan_y = width;
+                }
+            }
+
+            function filterTable() {
+                //number of filtered rows
+
+            }
+            table.on('search.dt', function(){
+                table.rows( { search : 'applied'} ).data();
+
+
+                var circles = main_chart_svg.selectAll("circle").data({{routes_json | safe}})
+                .enter().append("circle");
+            });
+
+
+            callout = (g, value) => {
+            if (!value) return g.style("display", "none");
+
+            g.style("display", null)
+            .style("pointer-events", "none")
+            .style("font", "10px sans-serif");
+
+            const path = g.selectAll("path")
+                .data([null])
+                .join("path")
+                .attr("fill", "white")
+                .attr("stroke", "black");
+
+            const text = g.selectAll("text")
+                .data([null])
+                .join("text")
+                .call(text => text
+                    .selectAll("tspan")
+                    .data((value + "").split(/\n/))
+                    .join("tspan")
+                    .attr("x", 0)
+                .attr("y", (d, i) => `${i * 1.1}em`)
+                .style("font-weight", (_, i) => i ? null : "bold")
+                .text(d => d));
+            const {x, y, width: w, height: h} = text.node().getBBox();
+
+            text.attr("transform", `translate(${-w / 2},${15 - y})`);
+            path.attr("d", `M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 20}h-${w + 20}z`);
+
+            }
+
+             {% if current_user.floorplan is not none %}
+                var url = "{{url_for('home_blueprint._get_floor_plan') }}";
+                var max_w = 1000;
+                var max_h = 500;
+                var main_chart_svg = d3.select("#floorplan").append("svg").attr("height",max_h).attr("width",max_w).attr("id","main_chart_svg");
+                var div = d3.select("#floorplan").append("div")
+                .attr("class", "tooltip-donut")
+                .style("opacity", 0);
+
+                d3.xml(url).then(data => {
+                    main_chart_svg.node().append(data.documentElement);
+                    var floorplan_svg = d3.select("svg").select("svg");
+                    var scale_ratio = Math.min(max_w/floorplan_svg.attr("width"), max_h/floorplan_svg.attr("height"));
+                    var svg_height = floorplan_svg.attr("height") * scale_ratio;
+                    var svg_width = floorplan_svg.attr("width") * scale_ratio;
+                    floorplan_svg.attr("height",svg_height).attr("width", svg_width).attr("id","floorplan_svg").attr("x",0).attr("y",0);
+
+                    var circles = main_chart_svg.selectAll("circle").data({{routes_json | safe}})
+                    .enter().append("circle");
+
+                    var circleAttributes = circles
+                    .attr("cx", function (d) { return d.floorplan_x;})
+                    .attr("cy", function (d) { return d.floorplan_y;})
+                    .attr('opacity', '1')
+                    .attr("r", 10 ).attr("fill","red")
+                    .attr("stroke","blue")
+                    .attr("stroke-width",1)
+                    //Our new hover effects
+                    .on('mouseover', function (d, i) {
+                        d3.select(this).transition()
+                        .duration('1')
+                        .attr('opacity', '.2');
+
+                        coordinate = d3.mouse(this);
+                       //Makes the new div appear on hover:
+                        tooltip
+                        .attr("transform",`translate(${coordinate[0]},${coordinate[1]})`)
+                        .call(callout,`${d.name}\n${d.difficulty}`);
+
+                        })
+                    .on('mouseout', function (d, i) {
+                        d3.select(this).transition()
+                        .duration('1')
+                        .attr('opacity', '1');
+                        tooltip.call(callout, null);
+
+                        });
+
+                     const tooltip = main_chart_svg.append("g");
+                });
+
+
+
+            {% endif %}
+
+            {% for route in routes %}
+              $( "#delete_route_{{route.uid}}" ).on( "click", function(event) {
+                 $.post("{{url_for('home_blueprint.delete_route', uid= route.uid)}}").done(function(response){
+                    if (response['success']== true){
+                      $.notify({title: '<strong>Success!</strong>', message: 'Route was successfully deleted.'}, {type: 'success'});
+                      $("#route_table_row_{{route.uid}}").remove();
+                    }
+                    else {
+                      $.notify({title: '<strong>Error!</strong>',message: 'Route could not be deleted'}, {type: 'warning'});
+                    }
+                  }).fail(function() {
+                      $.notify({ title: '<strong>Error!</strong>', message: 'Route could not be deleted'}, {type: 'warning'});
+                  });
+              });
+              $( "#edit_route_{{route.uid}}" ).on( "click", function(event) {
+                  window.location.replace("{{url_for('home_blueprint.edit_route', uid= route.uid)}}");
+              });
+            {% endfor %}
+
+        });
+
+    </script>
+{% endblock javascripts %}

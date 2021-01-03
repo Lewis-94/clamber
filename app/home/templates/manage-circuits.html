@@ -1,0 +1,72 @@
+{% extends "base-site.html" %}
+
+{% block title %} Manage Routes {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+        <button type="submit" name="login" class="btn btn-primary pull-left">Login</button>
+        {% for circuit in circuits %}
+        <div class="row">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header card-header-primary">
+                  <h4 class="card-title "> {{circuit.name}}</h4>
+                  <p class="card-category"> {{circuit.description}} </p>
+                  <p class="card-category"> {{circuit.grade_range}} </p>
+                  <p class="card-category"> {{circuit.style}} </p>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead class=" text-primary">
+                        <th>
+                          Route ID
+                        </th>
+                        <th>
+                          Name
+                        </th>
+                        <th>
+                          Difficulty
+                        </th>
+                        <th>
+                          Tags
+                        </th>
+                        <th>
+                          Date Added
+                        </th>
+                      </thead>
+                      {% for route in circuit.routes %}
+                      <tbody>
+                        <tr>
+                          <td>
+                            {{route.id}}
+                          </td>
+                          <td>
+                            {{route.name}}
+                          </td>
+                          <td>
+                            {{route.difficulty}}
+                          </td>
+                          <td>
+                            {{route.tags_str}}
+                          </td>
+                          <td class="text-primary">
+                            {{route.date_added}}
+                          </td>
+                        </tr>
+                      </tbody>
+                      {% endfor %}
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        {% endfor %}
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

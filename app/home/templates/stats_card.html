@@ -1,0 +1,19 @@
+ <div class="card card-stats">
+  <div class="card-header card-header-{{stat_card['card_type']}} card-header-icon">
+    <div class="card-icon">
+      <i class="material-icons">{{stat_card['big_icon']}}</i>
+    </div>
+    <p class="card-category">{{stat_card['title']}}</p>
+    <h3 class="card-title">{{stat_card['stat']}}
+      {% if 'unit' in stat_card %}
+      <small>{{stat_card['unit']}}</small>
+      {% endif %}
+    </h3>
+  </div>
+  <div class="card-footer">
+    <div class="stats">
+      <i class="material-icons text-{{stat_card['footer_type']}}">{{stat_card['footer_icon']}}</i>
+      <a href="{{stat_card['footer_href']}}">{{stat_card['footer_text']}}</a>
+    </div>
+  </div>
+</div>

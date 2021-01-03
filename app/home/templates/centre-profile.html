@@ -1,0 +1,201 @@
+{% extends "base-site.html" %}
+
+{% block title %} Page User {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+.circular_image {
+  max-width: 130px;
+  max-height: 130px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: blue;
+  /* commented for demo
+  float: left;
+  margin-left: 125px;
+  margin-top: 20px;
+  */
+
+  /*for demo*/
+  display:inline-block;
+  vertical-align:middle;
+}
+.circular_image img{
+  width:100%;
+}
+
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+          <div class="row">
+            <div class="col-md-8">
+              <div class="card card-profile">
+                <div class="card-avatar">
+                  <a>
+                    <img class="img" src={{current_user.avatar}} />
+                  </a>
+                </div>
+                <div class="card-body">
+                  <h6 class="card-category text-gray">
+                    {{ current_user.data['name']}}
+                  </h6>
+                  <h4 class="card-title">
+                    {{ current_user.data['email']}}
+                  </h4>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-8">
+              <div class="card">
+                <div class="card-header card-header-primary">
+                  <h4 class="card-title">Edit Profile</h4>
+                  <p class="card-category">Complete your profile</p>
+                </div>
+                <form role="form" method="post" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <label class="bmd-label-floating">Email address</label>
+                            <input type="email" class="form-control" value="{{current_user.data['email']}}", disabled="true">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <label class="bmd-label-floating">Centre Name</label>
+                            {{form.centre_name(**{"class_":"form-control"})}}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <label class="bmd-label-floating">Address</label>
+                              {{form.address(**{"class_":"form-control"})}}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-4">
+                        <div class="form-group">
+                          <label class="bmd-label-floating">City</label>
+                          {{form.city(**{"class_":"form-control"})}}
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-group">
+                          <label class="bmd-label-floating">Country</label>
+                          {{form.country(**{"class_":"form-control"})}}
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-group">
+                          <label class="bmd-label-floating">Postcode</label>
+                          {{form.postcode(**{"class_":"form-control"})}}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <label>About The Centre</label>
+                          <div class="form-group">
+                              {{form.about_the_centre(**{"class_":"form-control"})}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <label>About The Centre</label>
+                          <div class="form-group">
+                              {{form.grade_system(**{"class_":"custom-select"})}}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row" >
+                      <div class="col-md-4">
+                        <label>Upload Profile Picture</label>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="circular_image">
+                          <img class="img" src={{current_user.avatar}} />
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        {{form.profile_picture(**{"class_":"form-control-file", "oninput":"filesize(this,'profile_picture_filesize');"})}}
+                      </div>
+                    </div>
+                    <div class="row" >
+                      <div class= "col-md-4">
+                        <label>Upload plan view of climbing wall</label>
+                      </div>
+                      <div class= "col-md-4" id="floorplan">
+                      </div>
+                      <div class= "col-md-4">
+                        {{form.floor_plan(**{"class_":"form-control-file", "oninput":"filesize(this,'floor_plan_filesize');"})}}
+                      </div>
+                    </div>
+                    <div class="row" >
+                      <div class="form-group">
+                        <button type="submit" class="btn btn-primary pull-right">Update Profile</button>
+                      </div>
+                    </div>
+                    <div class="clearfix"></div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+          </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<!-- Specific Page JS goes HERE  -->
+      <script>
+          $(function(){
+
+            {% for notification in notifications %}
+                notification_type = "{{notification[0]}}";
+                notification_title = "{{notification[1]}}";
+                notification_message = "{{notification[2]}}";
+                $.notify(
+                  {title: '<strong>' + notification_title + '!</strong>', message: notification_message},
+                  {type: notification_type});
+            {% endfor %}
+
+            {% if current_user.floorplan is not none %}
+              var url = "{{url_for('home_blueprint._get_floor_plan') }}";
+              var max_w = 200;
+              var max_h = 200;
+              var main_chart_svg = d3.select("#floorplan").append("svg").attr("height", max_h).attr("width",max_w).attr("id","main_chart_svg");
+              d3.xml(url).then(data => {
+                main_chart_svg.node().append(data.documentElement);
+                var floorplan_svg = d3.select("svg").select("svg");
+                var scale_ratio = Math.min(max_w/floorplan_svg.attr("width"), max_h/floorplan_svg.attr("height"));
+                var svg_height = floorplan_svg.attr("height") * scale_ratio;
+                var svg_width = floorplan_svg.attr("width") * scale_ratio;
+                floorplan_svg.attr("height",svg_height).attr("width", svg_width).attr("id","floorplan_svg").attr("x",0).attr("y",0);
+              });
+
+            {% endif %}
+          });
+
+          function filesize(elem, attr){
+            document.cookie = attr + "=" + elem.files[0].size
+          }
+
+
+      </script>
+
+{% endblock javascripts %}
